@@ -1,0 +1,101 @@
+# **8-Puzzle Solver**
+
+## **Description**
+This project is an implementation of the classic **8-Puzzle** problem, which involves arranging tiles on a 3x3 board to match the goal state. The solution uses the **A* algorithm** with various heuristics to explore optimal paths efficiently. It demonstrates the practical application of AI search algorithms in solving combinatorial optimization problems.
+
+---
+
+## **Features**
+- **Customizable Initial State**: Define any starting configuration of the puzzle.
+- **Multiple Heuristics**:
+  - Misplaced Tiles
+  - Manhattan Distance
+  - Linear Conflict
+  - Uniform Cost
+- **A* Search Algorithm**: Implements A* with priority queues for efficient exploration.
+- **Experimentation**: Run the solver with different heuristics and compare their performance.
+
+---
+
+## **Technologies Used**
+- **Python**: Core programming language for logic and implementation.
+- **Heapq**: Priority queue for managing the frontier in A* search.
+- **Itertools**: Ensures unique entries in the search process.
+
+---
+
+## **How to Use**
+1. **Set Up Environment**:
+   - Ensure Python 3.7+ is installed.
+2. **Run the Program**:
+   - Save the code to a file named `eight_puzzle.py`.
+   - Execute the file using the command:
+     ```
+     python eight_puzzle.py
+     ```
+3. **Customize Initial State**:
+   - Modify the `initial_state` variable in the `__main__` block to set a custom starting configuration.
+4. **View Results**:
+   - The program will display the solution steps and performance metrics for each heuristic.
+
+---
+
+## **How It Works**
+1. **Puzzle Representation**:
+   - The puzzle is represented as a 2D list, with `0` denoting the empty space.
+2. **Heuristics**:
+   - **Misplaced Tiles**: Counts tiles not in their goal positions.
+   - **Manhattan Distance**: Calculates the total distance each tile is from its goal position.
+   - **Linear Conflict**: Enhances Manhattan Distance by considering conflicts between tiles in the same row or column.
+   - **Uniform Cost**: Assumes all moves have equal cost.
+3. **A* Search**:
+   - Explores states by prioritizing those with the lowest combined cost (g + h).
+   - Tracks explored nodes to avoid revisiting states.
+4. **Experimentation**:
+   - Runs the solver with all heuristics and prints the solution path, move count, and nodes explored.
+
+---
+
+## **Requirements**
+- **Python 3.7+** (Ensure it's installed and in your PATH).
+
+---
+
+## **Example Output**
+For the initial state:
+```
+4 1 3
+7 2 0
+8 6 5
+```
+The program might produce output like:
+```
+Heuristic: heuristic_uniform_cost
+Solution Moves: ['Up', 'Left', 'Down', 'Right']
+Explored Nodes: 15
+----------------------------------------
+Heuristic: heuristic_misplaced_tiles
+Solution Moves: ['Up', 'Left', 'Down']
+Explored Nodes: 12
+----------------------------------------
+Heuristic: heuristic_manhattan_distance
+Solution Moves: ['Up', 'Left', 'Down']
+Explored Nodes: 10
+----------------------------------------
+Heuristic: heuristic_linear_conflict
+Solution Moves: ['Up', 'Left', 'Down']
+Explored Nodes: 8
+----------------------------------------
+```
+
+---
+
+## **Future Enhancements**
+- Support for larger puzzles (e.g., 15-puzzle).
+- GUI for interactive solving.
+- Real-time visualization of the search process.
+
+---
+
+Feel free to modify and experiment with the code to learn more about AI search algorithms and heuristics!
+
