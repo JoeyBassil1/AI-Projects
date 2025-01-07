@@ -1,101 +1,144 @@
-# **8-Puzzle Solver**
-
-## **Description**
-This project is an implementation of the classic **8-Puzzle** problem, which involves arranging tiles on a 3x3 board to match the goal state. The solution uses the **A* algorithm** with various heuristics to explore optimal paths efficiently. It demonstrates the practical application of AI search algorithms in solving combinatorial optimization problems.
-
----
-
-## **Features**
-- **Customizable Initial State**: Define any starting configuration of the puzzle.
-- **Multiple Heuristics**:
-  - Misplaced Tiles
-  - Manhattan Distance
-  - Linear Conflict
-  - Uniform Cost
-- **A* Search Algorithm**: Implements A* with priority queues for efficient exploration.
-- **Experimentation**: Run the solver with different heuristics and compare their performance.
-
----
-
-## **Technologies Used**
-- **Python**: Core programming language for logic and implementation.
-- **Heapq**: Priority queue for managing the frontier in A* search.
-- **Itertools**: Ensures unique entries in the search process.
-
----
-
-## **How to Use**
-1. **Set Up Environment**:
-   - Ensure Python 3.7+ is installed.
-2. **Run the Program**:
-   - Save the code to a file named `eight_puzzle.py`.
-   - Execute the file using the command:
-     ```
-     python eight_puzzle.py
-     ```
-3. **Customize Initial State**:
-   - Modify the `initial_state` variable in the `__main__` block to set a custom starting configuration.
-4. **View Results**:
-   - The program will display the solution steps and performance metrics for each heuristic.
-
----
-
-## **How It Works**
-1. **Puzzle Representation**:
-   - The puzzle is represented as a 2D list, with `0` denoting the empty space.
-2. **Heuristics**:
-   - **Misplaced Tiles**: Counts tiles not in their goal positions.
-   - **Manhattan Distance**: Calculates the total distance each tile is from its goal position.
-   - **Linear Conflict**: Enhances Manhattan Distance by considering conflicts between tiles in the same row or column.
-   - **Uniform Cost**: Assumes all moves have equal cost.
-3. **A* Search**:
-   - Explores states by prioritizing those with the lowest combined cost (g + h).
-   - Tracks explored nodes to avoid revisiting states.
-4. **Experimentation**:
-   - Runs the solver with all heuristics and prints the solution path, move count, and nodes explored.
-
----
-
-## **Requirements**
-- **Python 3.7+** (Ensure it's installed and in your PATH).
-
----
-
-## **Example Output**
-For the initial state:
-```
-4 1 3
-7 2 0
-8 6 5
-```
-The program might produce output like:
-```
-Heuristic: heuristic_uniform_cost
-Solution Moves: ['Up', 'Left', 'Down', 'Right']
-Explored Nodes: 15
-----------------------------------------
-Heuristic: heuristic_misplaced_tiles
-Solution Moves: ['Up', 'Left', 'Down']
-Explored Nodes: 12
-----------------------------------------
-Heuristic: heuristic_manhattan_distance
-Solution Moves: ['Up', 'Left', 'Down']
-Explored Nodes: 10
-----------------------------------------
-Heuristic: heuristic_linear_conflict
-Solution Moves: ['Up', 'Left', 'Down']
-Explored Nodes: 8
-----------------------------------------
-```
-
----
-
-## **Future Enhancements**
-- Support for larger puzzles (e.g., 15-puzzle).
-- GUI for interactive solving.
-- Real-time visualization of the search process.
-
----
-
-Feel free to modify and experiment with the code to learn more about AI search algorithms and heuristics!
+import heapq
+import itertools
+ 
+class EightPuzzle:
+    def __init__(self, initial_state):
+        self.state = initial_state
+ 
+    def __eq__(self, other):
+        return self.state == other.state
+ 
+    def __hash__(self):
+        return hash(str(self.state))
+ 
+    def copy(self):
+        return EightPuzzle([row[:] for row in self.state])
+ 
+    def is_solved(self):
+        """Check if the puzzle is in a solved state."""
+        return self.state == [[1, 2, 3],
+                              [4, 5, 6],
+                              [7, 8, 0]]
+ 
+    def legal_moves(self):
+        """Generate a list of legal moves (Up, Down, Left, Right)."""
+        row, col = next((r, c) for r, row in enumerate(self.state) for c, val in enumerate(row) if val == 0)
+        moves = []
+        if row > 0: moves.append('Up')
+        if row < 2: moves.append('Down')
+        if col > 0: moves.append('Left')
+        if col < 2: moves.append('Right')
+        return moves
+ 
+    def result(self, move):
+        """Return a new puzzle that results from making a move."""
+        row, col = next((r, c) for r, row in enumerate(self.state) for c, val in enumerate(row) if val == 0)
+        new_state = [r[:] for r in self.state]
+        if move == 'Up':
+            new_state[row][col], new_state[row - 1][col] = new_state[row - 1][col], new_state[row][col]
+        elif move == 'Down':
+            new_state[row][col], new_state[row + 1][col] = new_state[row + 1][col], new_state[row][col]
+        elif move == 'Left':
+            new_state[row][col], new_state[row][col - 1] = new_state[row][col - 1], new_state[row][col]
+        elif move == 'Right':
+            new_state[row][col], new_state[row][col + 1] = new_state[row][col + 1], new_state[row][col]
+        return EightPuzzle(new_state)
+ 
+# Heuristics
+def heuristic_misplaced_tiles(puzzle):
+    """Count the number of misplaced tiles."""
+    goal = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+    return sum(1 for r in range(3) for c in range(3) if puzzle.state[r][c] != 0 and puzzle.state[r][c] != goal[r][c])
+ 
+def heuristic_manhattan_distance(puzzle):
+    """Calculate the total Manhattan distance."""
+    goal_positions = {1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (1, 0), 5: (1, 1), 6: (1, 2), 7: (2, 0), 8: (2, 1), 0: (2, 2)}
+    distance = 0
+    for r in range(3):
+        for c in range(3):
+            value = puzzle.state[r][c]
+            if value != 0:
+                goal_r, goal_c = goal_positions[value]
+                distance += abs(goal_r - r) + abs(goal_c - c)
+    return distance
+ 
+def heuristic_linear_conflict(puzzle):
+    """Calculate the number of linear conflicts, adding to the Manhattan distance."""
+    manhattan = heuristic_manhattan_distance(puzzle)
+    conflicts = 0
+    for i in range(3):
+        row_conflicts = []
+        col_conflicts = []
+        for j in range(3):
+            val = puzzle.state[i][j]
+            if val != 0:
+                goal_row, goal_col = divmod(val - 1, 3)
+                if goal_row == i:
+                    row_conflicts.append((val, j))
+                if goal_col == j:
+                    col_conflicts.append((val, i))
+        conflicts += len(row_conflicts) - len(set(row_conflicts)) + len(col_conflicts) - len(set(col_conflicts))
+    return manhattan + 2 * conflicts
+ 
+def heuristic_uniform_cost(puzzle):
+    """Heuristic that always returns 0, making A* behave as Uniform Cost Search."""
+    return 0
+ 
+def a_star_solve(puzzle, heuristic):
+    """Solve the 8-puzzle using A* and return the sequence of moves."""
+    frontier = []
+    counter = itertools.count()  # Unique sequence count to ensure uniqueness in heap
+    heapq.heappush(frontier, (0, next(counter), puzzle.copy(), []))  # (priority, count, puzzle state, moves)
+    explored = set()
+    explored_nodes = 0
+ 
+    while frontier:
+        f_cost, _, current_puzzle, moves = heapq.heappop(frontier)
+ 
+        if current_puzzle.is_solved():
+            return moves, explored_nodes  # Return the list of moves to solve the puzzle and explored nodes
+ 
+        if current_puzzle not in explored:
+            explored.add(current_puzzle)
+            explored_nodes += 1
+ 
+            g_cost = len(moves)  # Cost to reach current state
+ 
+            for move in current_puzzle.legal_moves():
+                new_puzzle = current_puzzle.result(move)
+                h_cost = heuristic(new_puzzle)
+                f_cost = g_cost + 1 + h_cost  # g(n) + h(n)
+ 
+                # Use a unique representation for the puzzle state in the heap
+                heapq.heappush(frontier, (f_cost, next(counter), new_puzzle, moves + [move]))
+ 
+    return [], explored_nodes  # No solution found
+ 
+def run_experiments(initial_state):
+    """Run experiments with different heuristics and print the results."""
+    puzzle = EightPuzzle(initial_state)
+    heuristics = [
+        heuristic_uniform_cost,
+        heuristic_misplaced_tiles,
+        heuristic_manhattan_distance,
+        heuristic_linear_conflict
+    ]
+ 
+    # Experiment with different heuristics
+    for heuristic_func in heuristics:
+        solution_moves, explored_nodes = a_star_solve(puzzle, heuristic_func)
+        heuristic_name = heuristic_func.__name__
+        print(f"Heuristic: {heuristic_name}")
+        print(f"Solution Moves: {solution_moves}")
+        print(f"Explored Nodes: {explored_nodes}")
+        print("-" * 40)
+ 
+if __name__ == "__main__":
+    initial_state = [[4, 1, 3],
+                     [7, 2, 0],
+                     [8, 6, 5]]  # Example initial state
+ 
+    run_experiments(initial_state)
+ 
+ 
 
